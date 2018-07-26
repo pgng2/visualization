@@ -1,14 +1,32 @@
 <!DOCTYPE html>
+<script src="http://d3js.org/d3.v3.min.js"></script>
+<style> .char rect { fill: steelblue } </style>
+
 <html>
 <body>
+<p>Lost numbers: <span id="data"></span></p>
 
-<h2>My First JavaScript</h2>
+<svg class = "chart" width="120" height="500">
+	<rect></rect>
+	<rect></rect>
+	<rect></rect>
+	<rect></rect>
+	<rect></rect>
+	<rect></rect>
+	<rect></rect>
+</svg>
 
-<button type="button"
-onclick="document.getElementById('demo').innerHTML = Date()">
-Click me to display Date and Time.</button>
-
-<p id="demo"></p>
+<script>
+var data = [4,8,15,16,23,42];
+document.getElementById("data").innerHTML = data;
+d3.selectAll("rect")
+	.data(data)
+	.attr("width",19)
+	.attr("height", function(d) { return 10*d; })
+	.attr("x", function(d,i) { return 20*i; })
+	.attr("y", function(d) { return 420 - 10*d; });
+</script>
 
 </body>
-</html> 
+</html>
+
