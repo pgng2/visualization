@@ -8,34 +8,62 @@
 
 <style>
 body {
-  font: 11px sans-serif;
+  font: 14px Arial;
 }
 
 .axis path,
 .axis line {
   fill: none;
-  stroke: #000;
+  stroke: grey;
+  stroke-width: 1;
   shape-rendering: crispEdges;
 }
 
+.bar-line {
+//  fill: #F38630;
+  fill: white;
+}
+//.domain,
+//.tick,
+//.tick line {
+////  stroke: #62D2E7;
+//  stroke: #000000;
+//}
+
 .dot {
-  stroke: #000;
+  stroke: #000000;
 }
 
 .tooltip {
   position: absolute;
-  width: 200px;
-  height: 28px;
+  width: 240px;
+  height: 114px;
   pointer-events: none;
+  color: #444;
+  background: white;
+  font: 12px Arial;
+  font-weight: bold;
+  border-radius: 10px;
+  border: 2px solid #444;
+  padding: 4px 8px;
 }
 </style>
 <body>
-<script src="//d3js.org/d3.v3.min.js"></script>
+<script src="//d3js.org/d3.v4.min.js"></script>
+
+<h1>Tuition and Admission Information of Undergraduate Programs in the United States</h1>
+<p>
+One common question that each prospective undergraduate student always ask themselves is: Which university or universities should a prospective undergraduate student apply for?<br/><br/>
+The design of this webpage is to help a prospective undergraduate student to explore which universities in the United States that he or she should apply for. The first chart (overview) on the dashboard is made of a scatter plot of SAT equivalent score of admitted students versus in-state tuition fee of universities in the United States. For any prospective undergraduate student, his or her academic ability (SAT equivalent scores) and financial ability (ability to pay the tuition and fees) can be two main driving forces of his/her decision in terms of university application. Having good SAT scores and ability to pay for tuition do not guarantee for admission as admission rate of a university also play an important role. It is common for a prospective student to apply for more than one university (as backup) especially when the targeted university has a relatively low admission rate. Admission rate information is shown on the dashboard overview chart to give a sense of how easy or hard to be admitted into the university. 
+</p>
 
 <script>
-var margin = {top: 20, right: 20, bottom: 30, left: 40},
+var margin = {top: 20, right: 20, bottom: 30, left: 80},
     width = 960 - margin.left - margin.right,
-    height = 500 - margin.top - margin.bottom;
+    height = 460 - margin.top - margin.bottom;
+
+//    console.log(" width="+width);
+//    console.log("height="+height);
 
 /* 
  * value accessor - returns the value to encode for a given data object.
@@ -45,98 +73,580 @@ var margin = {top: 20, right: 20, bottom: 30, left: 40},
  */ 
 
 // setup x 
-var xValue = function(d) { return d.Calories;}, // data -> value
-    xScale = d3.scale.linear().range([0, width]), // value -> display
+var xValue = function(d) { return d.SAT_AVG;}, // data -> value
+    xScale = d3.scaleLinear().range([0, width]), // value -> display
     xMap = function(d) { return xScale(xValue(d));}, // data -> display
-    xAxis = d3.svg.axis().scale(xScale).orient("bottom");
+//    xAxis = d3.svg.axis().scale(xScale).orient("bottom");
+    xAxis = d3.axisBottom(xScale);
 
 // setup y
-var yValue = function(d) { return d["Protein (g)"];}, // data -> value
-    yScale = d3.scale.linear().range([height, 0]), // value -> display
+var yValue = function(d) { return d.TUITIONFEE_IN;}, // data -> value
+    yScale = d3.scaleLinear().range([height, 0]), // value -> display
     yMap = function(d) { return yScale(yValue(d));}, // data -> display
-    yAxis = d3.svg.axis().scale(yScale).orient("left");
+//    yAxis = d3.svg.axis().scale(yScale).orient("left");
+    yAxis = d3.axisLeft(yScale);
 
 // setup fill color
-var cValue = function(d) { return d.Manufacturer;},
-    color = d3.scale.category10();
+//var cValue = function(d) { return d.CONTROL;},
+////    color = d3.scale.category10();
+//    color = d3.scaleOrdinal(d3.schemeCategory10);
+
+var cValue = function(d) { return d.ADM_RATE; },
+    color = d3.scaleLinear()
+    .domain([0, 1])
+    .range(["red", "green"]);
 
 // add the graph canvas to the body of the webpage
 var svg = d3.select("body").append("svg")
     .attr("width", width + margin.left + margin.right)
     .attr("height", height + margin.top + margin.bottom)
   .append("g")
-    .attr("transform", "translate(" + margin.left + "," + margin.top + ")");
+//    .attr("transform", "translate(" + margin.left + "," + margin.top + ")");
+    .attr("transform", "translate(" + margin.left + "," + 0 + ")");
 
 // add the tooltip area to the webpage
 var tooltip = d3.select("body").append("div")
     .attr("class", "tooltip")
     .style("opacity", 0);
 
+
+
+
+
+
+var bottomArea = d3.select("body").append("div")
+    .attr("class", "bottom_area");
+
+
+
+
+var chartDimensions = {
+  cWidth: (width + margin.left + margin.right)/3,
+  cHeight: 200,
+  cMarginLeft: 40, // for the widest y-axis tick label to show up fully
+  cMarginTop: 15,   // for topmost y-axis tick label to show up fully
+  cMarginBottom: 25 // for the x-axis tick labels to show up fully
+};
+
+var satChart = d3.select(".bottom_area")
+    .append("svg")
+    .attr("class", "sat_chart")
+    .attr("width", chartDimensions.cWidth)
+    .attr("height", chartDimensions.cHeight)
+    .append("g")
+    .attr("transform", "translate(" + margin.left + "," + 0 + ")");
+
+var satData = [
+  { value: 700, label: 'US Avg.' },
+  { value: 700, label: 'Selected' }
+];
+
+// Define the scales
+var satXScale = d3.scaleLinear()
+               .domain([0, satData.length])
+               .range([0, chartDimensions.cWidth - margin.left - chartDimensions.cMarginLeft]);
+
+var satYScale = d3.scaleLinear()
+               .domain([700, 1600])
+               .range([0, chartDimensions.cHeight - chartDimensions.cMarginTop - chartDimensions.cMarginBottom]);
+
+var satYAxisScale = d3.scaleLinear()
+               .domain([1600, 700])
+               .range([0, chartDimensions.cHeight - chartDimensions.cMarginTop - chartDimensions.cMarginBottom]);
+
+// Render the y-axis
+var satYAxis = d3.axisLeft( satYAxisScale )
+               // This is to make the horizontal tick lines stretch all the way across the chart
+              .tickSizeInner( -(chartDimensions.cWidth - chartDimensions.cMarginLeft - margin.left) )
+               // This spaces the tick values slights from the axis
+              .tickPadding( 10 );
+
+satChart.append("g")
+    .attr("transform", "translate(" + 0 + ", " + chartDimensions.cMarginTop + ")")
+    .call(satYAxis);
+satChart.append("text")
+    .attr("class", "label")
+    .attr("transform", "rotate(-90)")
+    .attr("y", -45)
+    .attr("dx", -40)
+    .style("font", "12px Arial")
+    .style("text-anchor", "end")
+    .text("Average SAT Score");
+
+// Define the ticks for the xAxis
+var xTicks = []
+for (var i = 0; i < satData.length; i++) {
+  xTicks.push( i + 0.5 ); // 0.5 is to ensure the ticks are offset correctly to match the data
+}
+// Render the x-axis
+var satXAxis = d3.axisBottom( satXScale )
+              .tickValues( xTicks )
+              .tickFormat(function(d, i) {
+                return satData[i].label;
+              });
+
+satChart.append("g")
+    .attr("transform", "translate(" + 0 + ", " + (chartDimensions.cHeight - chartDimensions.cMarginBottom) + ")")
+    .call(satXAxis);
+
+
+
+var barAttributes = {
+  class: 'bar-line',
+  transform: 'translate(' + 80 + ', ' + 0 + ')',
+  height: function( d, i ) {
+    return satYScale( d.value );
+  },
+  width: ((chartDimensions.cWidth - margin.left - chartDimensions.cMarginLeft) / satData.length) - (20 * 2),
+  x: function( d, i ) { return ((chartDimensions.cWidth - margin.left - chartDimensions.cMarginLeft)/ satData.length) * i + chartDimensions.cMarginLeft; },
+  y: function( d, i ) { return chartDimensions.cHeight - chartDimensions.cMarginBottom - satYScale( d.value ); }
+};
+
+satChart.append("g")
+     .selectAll('.' + barAttributes.class)
+     .data( satData )
+     .enter()
+     .append('rect')
+     .attr("class", function(d, i) { return "satChart_rect"+i; })
+     .attr("height", function(d, i) { return satYScale(d.value); })
+     .attr("width", ((chartDimensions.cWidth - margin.left - chartDimensions.cMarginLeft) / satData.length) - (20*2))
+     .attr("x", function(d, i) { return ((chartDimensions.cWidth - margin.left - chartDimensions.cMarginLeft)/satData.length) * i + (chartDimensions.cMarginLeft/2); })
+     .attr("y", function(d, i) { return chartDimensions.cHeight - chartDimensions.cMarginBottom - satYScale(d.value); })
+     .attr("fill", "steelblue");
+
+
+
+
+
+
+
+
+
+
+var admChart = d3.select(".bottom_area")
+    .append("svg")
+    .attr("class", "adm_chart")
+    .attr("width", chartDimensions.cWidth)
+    .attr("height", chartDimensions.cHeight)
+    .append("g")
+    .attr("transform", "translate(" + margin.left + "," + 0 + ")");
+
+var admData = [
+  { value: 0, label: 'US Avg.' },
+  { value: 0, label: 'Selected' }
+];
+
+// Define the scales
+var admXScale = d3.scaleLinear()
+               .domain([0, admData.length])
+               .range([0, chartDimensions.cWidth - margin.left - chartDimensions.cMarginLeft]);
+
+var admYScale = d3.scaleLinear()
+               .domain([0, 100])
+               .range([0, chartDimensions.cHeight - chartDimensions.cMarginTop - chartDimensions.cMarginBottom]);
+
+var admYAxisScale = d3.scaleLinear()
+               .domain([100, 0])
+               .range([0, chartDimensions.cHeight - chartDimensions.cMarginTop - chartDimensions.cMarginBottom]);
+
+// Render the y-axis
+var admYAxis = d3.axisLeft( admYAxisScale )
+               // This is to make the horizontal tick lines stretch all the way across the chart
+              .tickSizeInner( -(chartDimensions.cWidth - chartDimensions.cMarginLeft - margin.left) )
+               // This spaces the tick values slights from the axis
+              .tickPadding( 10 );
+
+admChart.append("g")
+    .attr("transform", "translate(" + 0 + ", " + chartDimensions.cMarginTop + ")")
+    .call(admYAxis);
+admChart.append("text")
+    .attr("class", "label")
+    .attr("transform", "rotate(-90)")
+    .attr("y", -35)
+    .attr("dx", -15)
+    .style("font", "12px Arial")
+    .style("text-anchor", "end")
+    .text("Average Admission Rate (%)");
+
+// Define the ticks for the xAxis
+var admXTicks = []
+for (var i = 0; i < admData.length; i++) {
+  admXTicks.push( i + 0.5 ); // 0.5 is to ensure the ticks are offset correctly to match the data
+}
+// Render the x-axis
+var admXAxis = d3.axisBottom( admXScale )
+              .tickValues( admXTicks )
+              .tickFormat(function(d, i) {
+                return admData[i].label;
+              });
+
+admChart.append("g")
+    .attr("transform", "translate(" + 0 + ", " + (chartDimensions.cHeight - chartDimensions.cMarginBottom) + ")")
+    .call(admXAxis);
+
+var barAttributes = {
+  class: 'bar-line',
+  transform: 'translate(' + 80 + ', ' + 0 + ')',
+  height: function( d, i ) {
+    return admYScale( d.value );
+  },
+  width: ((chartDimensions.cWidth - margin.left - chartDimensions.cMarginLeft) / admData.length) - (20 * 2),
+  x: function( d, i ) { return ((chartDimensions.cWidth - margin.left - chartDimensions.cMarginLeft)/ admData.length) * i + chartDimensions.cMarginLeft; },
+  y: function( d, i ) { return chartDimensions.cHeight - chartDimensions.cMarginBottom - admYScale( d.value ); }
+};
+
+admChart.append("g")
+     .selectAll('.' + barAttributes.class)
+     .data( admData )
+     .enter()
+     .append('rect')
+     .attr("class", function(d, i) { return "admChart_rect"+i; })
+     .attr("height", function(d, i) { return admYScale(d.value); })
+     .attr("width", ((chartDimensions.cWidth - margin.left - chartDimensions.cMarginLeft) / admData.length) - (20*2))
+     .attr("x", function(d, i) { return ((chartDimensions.cWidth - margin.left - chartDimensions.cMarginLeft)/admData.length) * i + (chartDimensions.cMarginLeft/2); })
+     .attr("y", function(d, i) { return chartDimensions.cHeight - chartDimensions.cMarginBottom - admYScale(d.value); })
+     .attr("fill", "steelblue");
+
+
+
+
+
+
+
+
+
+
+
+var tutChart = d3.select(".bottom_area")
+    .append("svg")
+    .attr("class", "tut_chart")
+    .attr("width", chartDimensions.cWidth)
+    .attr("height", chartDimensions.cHeight)
+    .append("g")
+    .attr("transform", "translate(" + margin.left + "," + 0 + ")");
+
+var tutData = [
+  { value: 0, label: 'US Avg.' },
+  { value: 0, label: 'Selected' }
+];
+
+// Define the scales
+var tutXScale = d3.scaleLinear()
+               .domain([0, tutData.length])
+               .range([0, chartDimensions.cWidth - margin.left - chartDimensions.cMarginLeft]);
+
+var tutYScale = d3.scaleLinear()
+               .domain([1000, 55000])
+               .range([0, chartDimensions.cHeight - chartDimensions.cMarginTop - chartDimensions.cMarginBottom]);
+
+var tutYAxisScale = d3.scaleLinear()
+               .domain([55000, 1000])
+               .range([0, chartDimensions.cHeight - chartDimensions.cMarginTop - chartDimensions.cMarginBottom]);
+
+// Render the y-axis
+var tutYAxis = d3.axisLeft( tutYAxisScale )
+               // This is to make the horizontal tick lines stretch all the way across the chart
+              .tickSizeInner( -(chartDimensions.cWidth - chartDimensions.cMarginLeft - margin.left) )
+               // This spaces the tick values slights from the axis
+              .tickPadding( 10 );
+
+tutChart.append("g")
+    .attr("transform", "translate(" + 0 + ", " + chartDimensions.cMarginTop + ")")
+    .call(tutYAxis);
+tutChart.append("text")
+    .attr("class", "label")
+    .attr("transform", "rotate(-90)")
+    .attr("y", -55)
+    .attr("dx", -15)
+    .style("font", "12px Arial")
+    .style("text-anchor", "end")
+    .text("Average In-State Tuition ($)");
+
+// Define the ticks for the xAxis
+var tutXTicks = []
+for (var i = 0; i < tutData.length; i++) {
+  tutXTicks.push( i + 0.5 ); // 0.5 is to ensure the ticks are offset correctly to match the data
+}
+// Render the x-axis
+var tutXAxis = d3.axisBottom( tutXScale )
+              .tickValues( tutXTicks )
+              .tickFormat(function(d, i) {
+                return tutData[i].label;
+              });
+
+tutChart.append("g")
+    .attr("transform", "translate(" + 0 + ", " + (chartDimensions.cHeight - chartDimensions.cMarginBottom) + ")")
+    .call(tutXAxis);
+
+var barAttributes = {
+  class: 'bar-line',
+  transform: 'translate(' + 80 + ', ' + 0 + ')',
+  height: function( d, i ) {
+    return tutYScale( d.value );
+  },
+  width: ((chartDimensions.cWidth - margin.left - chartDimensions.cMarginLeft) / tutData.length) - (20 * 2),
+  x: function( d, i ) { return ((chartDimensions.cWidth - margin.left - chartDimensions.cMarginLeft)/ tutData.length) * i + chartDimensions.cMarginLeft; },
+  y: function( d, i ) { return chartDimensions.cHeight - chartDimensions.cMarginBottom - tutYScale( d.value ); }
+};
+
+tutChart.append("g")
+     .selectAll('.' + barAttributes.class)
+     .data( tutData )
+     .enter()
+     .append('rect')
+     .attr("class", function(d, i) { return "tutChart_rect"+i; })
+     .attr("height", function(d, i) { return tutYScale(d.value); })
+     .attr("width", ((chartDimensions.cWidth - margin.left - chartDimensions.cMarginLeft) / tutData.length) - (20*2))
+     .attr("x", function(d, i) { return ((chartDimensions.cWidth - margin.left - chartDimensions.cMarginLeft)/tutData.length) * i + (chartDimensions.cMarginLeft/2); })
+     .attr("y", function(d, i) { return chartDimensions.cHeight - chartDimensions.cMarginBottom - tutYScale(d.value); })
+     .attr("fill", "steelblue");
+
+
+// Annotation
+d3.select("body").select("svg").append("circle")
+   .attr("class", "annotation")
+   .attr("cx", 820)
+   .attr("cy", 58)
+   .attr("r", 55)
+   .attr("stroke", "blue")
+   .attr("stroke-width", 2)
+   .attr("fill", "none")
+d3.select("body").select("svg").append("foreignObject")
+   .attr("width", 140)
+   .attr("height", 100)
+   .attr("x", 760)
+   .attr("y", 110)
+ .append("xhtml:body")
+   .style("font", "12px 'Arial'")
+   .style("fill", "#444")
+   .style("font-weight", "bold")
+   .html("Elite Institutions including<br/>Ivy League Schools");
+
+// Annotation
+d3.select("body").select("svg").append("circle")
+   .attr("class", "annotation")
+   .attr("cx", 720)
+   .attr("cy", 305)
+   .attr("r", 55)
+   .attr("stroke", "blue")
+   .attr("stroke-width", 2)
+   .attr("fill", "none")
+d3.select("body").select("svg").append("foreignObject")
+   .attr("width", 140)
+   .attr("height", 100)
+   .attr("x", 680)
+   .attr("y", 360)
+ .append("xhtml:body")
+   .style("font", "12px 'Arial'")
+   .style("fill", "#444")
+   .style("font-weight", "bold")
+   .html("More affordable Top Tier Institutions");
+
+
+
+
+
+
+
+
 // load data
-d3.csv("cereal.csv", function(error, data) {
+d3.csv("sample.csv", function(error, data) {
+  var SUM_SAT_AVG = 0;
+  var AVG_SAT_AVG = 0;
+  var SUM_ADM_RATE = 0;
+  var AVG_ADM_RATE = 0;
+  var SUM_TUITION_IN = 0;
+  var AVG_TUITION_IN = 0;
+  var INSTITUTE_COUNT = 0;
 
   // change string (from CSV) into number format
   data.forEach(function(d) {
-    d.Calories = +d.Calories;
-    d["Protein (g)"] = +d["Protein (g)"];
-//    console.log(d);
+    INSTITUTE_COUNT = INSTITUTE_COUNT + 1;
+    d.SAT_AVG = +d.SAT_AVG;
+    if (isNaN(d.SAT_AVG)) {
+        d.SAT_AVG = 800;
+    }
+//    console.log(d.SAT_AVG);
+    SUM_SAT_AVG = SUM_SAT_AVG + d.SAT_AVG;
+//    console.log(SUM_SAT_AVG);
+
+    d.CONTROL = +d.CONTROL;
+    d.TUITIONFEE_IN = +d.TUITIONFEE_IN;
+    if (isNaN(d.TUITIONFEE_IN)) {
+        d.TUITIONFEE_IN = 10000;
+    }
+//    console.log(d.TUITIONFEE_IN);
+    SUM_TUITION_IN = SUM_TUITION_IN + d.TUITIONFEE_IN;
+//    console.log(SUM_TUITION_IN);
+
+    d.ADM_RATE = +d.ADM_RATE;
+    if (isNaN(d.ADM_RATE)) {
+        d.ADM_RATE = 1.0;
+    }
+//    console.log(d.ADM_RATE);
+    SUM_ADM_RATE = SUM_ADM_RATE + d.ADM_RATE;
+//    console.log(SUM_ADM_RATE);
   });
 
+  AVG_SAT_AVG = SUM_SAT_AVG / INSTITUTE_COUNT;
+  AVG_ADM_RATE = SUM_ADM_RATE / INSTITUTE_COUNT;
+  AVG_TUITION_IN = SUM_TUITION_IN / INSTITUTE_COUNT;
+
+//  console.log("INSTITUTE_COUNT="+INSTITUTE_COUNT);
+//  console.log("SUM_SAT_AVG="+SUM_SAT_AVG);
+//  console.log("AVG_SAT_AVG="+SUM_SAT_AVG/INSTITUTE_COUNT);
+//  console.log("SUM_ADM_RATE="+SUM_ADM_RATE);
+//  console.log("AVG_ADM_RATE="+SUM_ADM_RATE/INSTITUTE_COUNT);
+//  console.log("SUM_TUITION_IN="+SUM_TUITION_IN);
+//  console.log("AVG_TUITION_IN="+SUM_TUITION_IN/INSTITUTE_COUNT);
+
+  satChart.select(".satChart_rect0")
+      .attr("height", satYScale(AVG_SAT_AVG))
+      .attr("y", chartDimensions.cHeight - chartDimensions.cMarginBottom - satYScale(AVG_SAT_AVG)); 
+  satChart.select(".satChart_rect1")
+      .attr("fill", "purple");
+
+  admChart.select(".admChart_rect0")
+      .attr("height", admYScale(AVG_ADM_RATE*100))
+      .attr("y", chartDimensions.cHeight - chartDimensions.cMarginBottom - admYScale(AVG_ADM_RATE*100)); 
+  admChart.select(".admChart_rect1")
+      .attr("fill", "orange");
+
+  tutChart.select(".tutChart_rect0")
+      .attr("height", tutYScale(AVG_TUITION_IN))
+      .attr("y", chartDimensions.cHeight - chartDimensions.cMarginBottom - tutYScale(AVG_TUITION_IN)); 
+  tutChart.select(".tutChart_rect1")
+      .attr("fill", "green");
+
   // don't want dots overlapping axis, so add in buffer to data domain
-  xScale.domain([d3.min(data, xValue)-1, d3.max(data, xValue)+1]);
-  yScale.domain([d3.min(data, yValue)-1, d3.max(data, yValue)+1]);
+  xScale.domain([d3.min(data, xValue)-50, d3.max(data, xValue)+50]);
+  yScale.domain([d3.min(data, yValue)-1000, d3.max(data, yValue)+1000]);
 
   // x-axis
   svg.append("g")
       .attr("class", "x axis")
       .attr("transform", "translate(0," + height + ")")
-      .call(xAxis)
-    .append("text")
-      .attr("class", "label")
-      .attr("x", width)
-      .attr("y", -6)
+      .call(xAxis);
+  svg.append("text")
+      .attr("class", "x_axis_label")
+      .attr("transform", "translate(" + (width) + " ," + (height - 10) + ")")
+//      .attr("x", width)
+      .attr("dx", -300)
+      .attr("y", 43)
       .style("text-anchor", "end")
-      .text("Calories");
+      .text("SAT equivalent score of students admitted");
 
   // y-axis
   svg.append("g")
       .attr("class", "y axis")
-      .call(yAxis)
-    .append("text")
+      .call(yAxis);
+  svg.append("text")
       .attr("class", "label")
       .attr("transform", "rotate(-90)")
-      .attr("y", 6)
-      .attr("dy", ".71em")
+      .attr("y", -60)
+      .attr("dx", -120)
       .style("text-anchor", "end")
-      .text("Protein (g)");
+      .text("In-State Tuition Fees ($)");
 
   // draw dots
   svg.selectAll(".dot")
       .data(data)
     .enter().append("circle")
       .attr("class", "dot")
-      .attr("r", 3.5)
+      .attr("r", 5.5)
       .attr("cx", xMap)
       .attr("cy", yMap)
       .style("fill", function(d) { return color(cValue(d));}) 
+      .on("click", function(d) {
+          console.log(d);
+          tooltip.transition()
+              .duration(200)
+              .style("opacity", 0);
+      })
       .on("mouseover", function(d) {
+          // grey out all dots
+          svg.selectAll(".dot")
+              .style("fill", "rgb(245,245,245)")
+              .style("stroke", "#c0c0c0");
+
+          // make the currently select dot more visible
+          d3.select(this).attr("r", 5.5);
+          d3.select(this)
+              .style("fill", function(d) { return color(cValue(d)); })
+              .style("stroke", "#000000");
+
           tooltip.transition()
                .duration(200)
-               .style("opacity", .9);
-          tooltip.html(d["Cereal Name"] + "<br/> (" + xValue(d) 
-	        + ", " + yValue(d) + ")")
-               .style("left", (d3.event.pageX + 5) + "px")
+               .style("opacity", 0.9);
+
+          var adm_rate = d3.format(".2%")(d.ADM_RATE);
+          var tuition = d3.format("$,")(d.TUITIONFEE_IN);
+          var control = "Public";
+          if (d.CONTROL == 2) {
+              control = "Private (Non-Profit)";
+          } else if (d.CONTROL == 3) {
+              control = "Private (For-Profit)";
+          }
+          tooltip.html(d.INSTNM + "<br/>" +
+                       "City: " + d.CITY + "<br/>" +
+                       "State: " + d.STABBR + "<br/>" +
+                       "Avg. SAT score: " + d.SAT_AVG + "<br/>" +
+                       "In-State Tuition Fees: " + tuition + "<br/>" +
+                       "Avg. Admission Rate: " + adm_rate + "<br/>" +
+                       "Control of Institution: " + control + "<br/>" +
+                       "Undergraduate Enrollment (2015): " + d.UGDS + "<br/>")
+               .style("left", (d3.event.pageX + 25) + "px")
                .style("top", (d3.event.pageY - 28) + "px");
+
+          satChart.select(".satChart_rect1")
+              .attr("fill", "purple")
+              .attr("height", satYScale(d.SAT_AVG))
+              .attr("y", (chartDimensions.cHeight - chartDimensions.cMarginBottom - satYScale(d.SAT_AVG)) );
+
+          admChart.select(".admChart_rect1")
+              .attr("fill", "orange")
+              .attr("height", admYScale(d.ADM_RATE*100))
+              .attr("y", (chartDimensions.cHeight - chartDimensions.cMarginBottom - admYScale(d.ADM_RATE*100)) );
+
+          tutChart.select(".tutChart_rect1")
+              .attr("fill", "green")
+              .attr("height", tutYScale(d.TUITIONFEE_IN))
+              .attr("y", (chartDimensions.cHeight - chartDimensions.cMarginBottom - tutYScale(d.TUITIONFEE_IN)) );
       })
       .on("mouseout", function(d) {
+          d3.select(this).attr("r", 5.5);
           tooltip.transition()
                .duration(500)
                .style("opacity", 0);
+
+          svg.selectAll(".dot")
+              .style("fill", function(d) { return color(cValue(d));})
+              .style("stroke", "#000000");
+
+          satChart.select(".satChart_rect1")
+//              .attr("fill", "#c0c0c0")
+              .attr("height", satYScale(700))
+              .attr("y", (chartDimensions.cHeight - chartDimensions.cMarginBottom - satYScale(700)) );
+
+          admChart.select(".admChart_rect1")
+//              .attr("fill", "#c0c0c0")
+              .attr("height", admYScale(0))
+              .attr("y", (chartDimensions.cHeight - chartDimensions.cMarginBottom - admYScale(0)) );
+
+          tutChart.select(".tutChart_rect1")
+//              .attr("fill", "#c0c0c0")
+              .attr("height", tutYScale(1000))
+              .attr("y", (chartDimensions.cHeight - chartDimensions.cMarginBottom - tutYScale(1000)) );
       });
+
+  var legendColor = d3.scaleLinear()
+    .domain([0, 0.25, 0.5, 0.75, 1])
+    .range(["red", "green"]);
 
   // draw legend
   var legend = svg.selectAll(".legend")
-      .data(color.domain())
+//      .data(color.domain())
+      .data(legendColor.domain())
     .enter().append("g")
       .attr("class", "legend")
       .attr("transform", function(d, i) { return "translate(0," + i * 20 + ")"; });
@@ -144,6 +654,7 @@ d3.csv("cereal.csv", function(error, data) {
   // draw legend colored rectangles
   legend.append("rect")
       .attr("x", width - 18)
+      .attr("y", height - margin.bottom - 100)
       .attr("width", 18)
       .attr("height", 18)
       .style("fill", color);
@@ -151,12 +662,32 @@ d3.csv("cereal.csv", function(error, data) {
   // draw legend text
   legend.append("text")
       .attr("x", width - 24)
-      .attr("y", 9)
+//      .attr("y", 9)
+      .attr("y", height - margin.bottom - 100 + 9)
       .attr("dy", ".35em")
       .style("text-anchor", "end")
-      .text(function(d) { return d;})
+      .text(function(d) {
+          if (d == 0) {
+              return "0%";
+          } else if (d == 0.25) {
+              return "25%";
+          } else if (d == 0.5) {
+              return "50%";
+          } else if (d == 0.75) {
+              return "75%";
+          } else if (d == 1) {
+              return "100%";
+          }})
+
+  var legendTitle = svg.select(".legend")
+      .append("text")
+      .attr("x", width)
+      .attr("y", height - margin.bottom - 110)
+      .style("text-anchor", "end")
+      .text("Admission Rate")
 });
 
 </script>
+
 </body>
 </html>
