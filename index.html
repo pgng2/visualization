@@ -36,7 +36,7 @@ body {
 
 .tooltip {
   position: absolute;
-  width: 240px;
+  width: 280px;
   height: 114px;
   pointer-events: none;
   color: #444;
@@ -51,10 +51,23 @@ body {
 <body>
 <script src="//d3js.org/d3.v4.min.js"></script>
 
+<p>
+<button onclick="displayEssay()">About the Visualization</button>
+</p>
+<p id="about_the_visualization">
+</p>
+
+<script>
+function displayEssay() {
+document.getElementById("about_the_visualization").innerHTML = 
+"<p>Drill-Down Story narrative visualization is used for this data visualization. Unlike Interactive Slideshow where scenes are presented one after another, this drill-down story visualization presents a main scene in which upon user action, will trigger three different scenes to be updated. The story presented here is how a prospective undergraduate student may go about picking which one or more universities to apply. The main scene of this visualization is a scatter plot of over 1000 universities within United States based on their admitted SAT scores and In-State tuition fees. Each university is represented by a circle on the scatter plot and each circle is colored with a gradient spanning from green to red. The redder the circle, the lower the university admission rate.</p><p>There are two annotations in the main scene highlighting two clusters of top-tier universities in the countries. The first annotation marks the top-tier universities which require very high SAT scores and charge a premium in their tuition fees. The second annotation marks another set of top-tier universities which also require high SAT scores but charge a relatively more affordable tuition fees. These two annotations follow a similar design template to achieve visual consistency.</p><p>There are three main parameters in this visualization: admitted SAT score, in-state tuition fees and average admission rate. These parameters are controlled indirectly by user moving the mouse pointer over a particular university (represented by a circle) in the scatter plot. When a user moves a mouse pointer over a particular circle in the scatter plot, all other circles on the scatter plot will be grey out to highlight the selected university. A tooltip will appear to display detail information about the university. The mouseover action updates the three parameters which in turn trigger all three smaller scenes below the scatter plot to be updated with the corresponding parameters. The three smaller scenes are designed using a similar template in order to achieve visual consistency. The first of the three scenes shows how the university's admitted SAT score compared to the national average. The second scene shows how the university's admission rate compared to the national average. The last scene shows how the university's in-state tuition fees compared to the national average. These three scenes help to give a sense of how the selected university compared to others within the nation. When user moves the mouse away from a particular circle on the scatter plot, all the circles on the scatter plot will restore their original colors and the three small scenes will be restored to indicate that no particular university has been selected.</p><p>User interface events:<br/>Mouseover - select a particular university -> all three parameters will be updated -> trigger three small scenes to be updated accordingly.</br>Mouseout - de-select a particular university -> all three parameters will be cleared -> trigger three small scenes to be restored indicating no university has been selected.</p><p>One possible narrative of this visualization is that for a prospective student who has high SAT score but modest financial ability, focusing on the lower right quadrant on the scatter plot may be the best way to go.</p>"
+}
+</script>
+
 <h1>Tuition and Admission Information of Undergraduate Programs in the United States</h1>
 <p>
-One common question that each prospective undergraduate student always ask themselves is: Which university or universities should a prospective undergraduate student apply for?<br/><br/>
-The design of this webpage is to help a prospective undergraduate student to explore which universities in the United States that he or she should apply for. The first chart (overview) on the dashboard is made of a scatter plot of SAT equivalent score of admitted students versus in-state tuition fee of universities in the United States. For any prospective undergraduate student, his or her academic ability (SAT equivalent scores) and financial ability (ability to pay the tuition and fees) can be two main driving forces of his/her decision in terms of university application. Having good SAT scores and ability to pay for tuition do not guarantee for admission as admission rate of a university also play an important role. It is common for a prospective student to apply for more than one university (as backup) especially when the targeted university has a relatively low admission rate. Admission rate information is shown on the dashboard overview chart to give a sense of how easy or hard to be admitted into the university. 
+A prospective undergraduate student often ask himself or herself: Which university or universities should I apply for?<br/><br/>
+This webpage is designed to help prospective undergraduate students to explore which universities in the United States that they should apply. For any prospective undergraduate student, his or her academic ability (SAT equivalent scores) and financial ability (ability to pay the tuition and fees) can be two main driving forces of his/her decision in terms of university application. However, having high SAT score and the ability to pay for tuition do not guarantee admission as admission rate of a university also play an important role. It is common for a prospective student to apply for more than one university (as backup) especially when the desired university has a relatively low admission rate. Admission rate information is indicated by the color of a circle to give a sense of how easy or hard to be admitted into the university.
 </p>
 
 <script>
@@ -558,10 +571,26 @@ d3.csv("sample.csv", function(error, data) {
       .attr("cy", yMap)
       .style("fill", function(d) { return color(cValue(d));}) 
       .on("click", function(d) {
-          console.log(d);
+/*
           tooltip.transition()
               .duration(200)
               .style("opacity", 0);
+
+          satChart.select(".satChart_rect1")
+              .attr("fill", "purple")
+              .attr("height", satYScale(d.SAT_AVG))
+              .attr("y", (chartDimensions.cHeight - chartDimensions.cMarginBottom - satYScale(d.SAT_AVG)) );
+
+          admChart.select(".admChart_rect1")
+              .attr("fill", "orange")
+              .attr("height", admYScale(d.ADM_RATE*100))
+              .attr("y", (chartDimensions.cHeight - chartDimensions.cMarginBottom - admYScale(d.ADM_RATE*100)) );
+
+          tutChart.select(".tutChart_rect1")
+              .attr("fill", "green")
+              .attr("height", tutYScale(d.TUITIONFEE_IN))
+              .attr("y", (chartDimensions.cHeight - chartDimensions.cMarginBottom - tutYScale(d.TUITIONFEE_IN)) );
+*/
       })
       .on("mouseover", function(d) {
           // grey out all dots
