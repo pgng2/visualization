@@ -628,16 +628,19 @@ d3.csv("sample.csv", function(error, data) {
                .style("top", (d3.event.pageY - 28) + "px");
 
           satChart.select(".satChart_rect1")
+              .transition().duration(1000).delay(50)
               .attr("fill", "purple")
               .attr("height", satYScale(d.SAT_AVG))
               .attr("y", (chartDimensions.cHeight - chartDimensions.cMarginBottom - satYScale(d.SAT_AVG)) );
 
           admChart.select(".admChart_rect1")
+              .transition().duration(1000).delay(50)
               .attr("fill", "orange")
               .attr("height", admYScale(d.ADM_RATE*100))
               .attr("y", (chartDimensions.cHeight - chartDimensions.cMarginBottom - admYScale(d.ADM_RATE*100)) );
 
           tutChart.select(".tutChart_rect1")
+              .transition().duration(1000).delay(50)
               .attr("fill", "green")
               .attr("height", tutYScale(d.TUITIONFEE_IN))
               .attr("y", (chartDimensions.cHeight - chartDimensions.cMarginBottom - tutYScale(d.TUITIONFEE_IN)) );
@@ -653,16 +656,19 @@ d3.csv("sample.csv", function(error, data) {
               .style("stroke", "#000000");
 
           satChart.select(".satChart_rect1")
+              .transition().duration(300).delay(50)
 //              .attr("fill", "#c0c0c0")
               .attr("height", satYScale(700))
               .attr("y", (chartDimensions.cHeight - chartDimensions.cMarginBottom - satYScale(700)) );
 
           admChart.select(".admChart_rect1")
+              .transition().duration(300).delay(50)
 //              .attr("fill", "#c0c0c0")
               .attr("height", admYScale(0))
               .attr("y", (chartDimensions.cHeight - chartDimensions.cMarginBottom - admYScale(0)) );
 
           tutChart.select(".tutChart_rect1")
+              .transition().duration(300).delay(50)
 //              .attr("fill", "#c0c0c0")
               .attr("height", tutYScale(1000))
               .attr("y", (chartDimensions.cHeight - chartDimensions.cMarginBottom - tutYScale(1000)) );
